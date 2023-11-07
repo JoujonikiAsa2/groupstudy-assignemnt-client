@@ -50,6 +50,20 @@ async function run() {
       }
     })
 
+    app.get("/assignments/level/:difficulty", async (req, res) => {
+      try {
+        const difficultyLevel = req.params.difficulty
+        const query = { difficulty: difficultyLevel}
+        const filteredAssignment = assignmentsCollections.find(query)
+        const result = await filteredAssignment.toArray()
+        res.send(result)
+      }
+      catch {
+        error =>
+        console.log(error)
+      }
+    })
+
     app.post("/assignments", async (req, res) => {
       const assignments = req.body
       const result = await assignmentsCollections.insertOne(assignments)
