@@ -33,11 +33,7 @@ async function run() {
     // Connect the client to the server
     await client.connect();
 
-    app.get("/assignments", async (req, res) => {
-      const assignments = assignmentsCollections.find()
-      const result = await assignments.toArray()
-      res.send(result)
-    })
+    // Submission
 
     app.get("/submissions", async (req, res) => {
       const assignments = submittedAssignmentCollections.find()
@@ -45,10 +41,34 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/submissions/:email", async (req, res) => {
-      const email = req.params.email
-        const query = { email: email }
-      const assignments = submittedAssignmentCollections.find(query)
+    app.get("/submissions/:id", async (req, res) => {
+      try {
+        const id = req.params.id
+        const query = { _id: new ObjectId(id) }
+        const result = await submittedAssignmentCollections.findOne(query)
+        res.send(result)
+      }
+      catch {
+        console.log("error")
+      }
+    })
+    app.get("/submissions/statusCode/:status", async (req, res) => {
+      try {
+        const status = req.params.status
+        const query = { status: status }
+        const assignments = submittedAssignmentCollections.find(query)
+        const result = await assignments.toArray()
+        res.send(result)
+      }
+      catch {
+        console.log("error")
+      }
+    })
+
+
+    // Assignment
+    app.get("/assignments", async (req, res) => {
+      const assignments = assignmentsCollections.find()
       const result = await assignments.toArray()
       res.send(result)
     })
@@ -63,47 +83,47 @@ async function run() {
       }
       catch {
         error =>
-        console.log(error)
+          console.log(error)
       }
     })
-    app.get("/assignments/submitted/:id", async (req, res) => {
-      try {
-        const id = req.params.id
-        const query = {_id: id }
-        const result = await assignmentsCollections.findOne(query)
-        res.send(result)
-      }
-      catch {
-        error =>
-        console.log(error)
-      }
+
+    app.get("/assignments/emailAdd/:email", async (req, res) => {
+      const email = req.params.email
+      const query = { creatorEmail: email }
+      const assignments = assignmentsCollections.find(query)
+      const result = await assignments.toArray()
+      res.send(result)
     })
 
     app.get("/assignments/level/:difficulty", async (req, res) => {
       try {
         const difficultyLevel = req.params.difficulty
-        const query = { difficulty: difficultyLevel}
+        const query = { difficulty: difficultyLevel }
         const filteredAssignment = assignmentsCollections.find(query)
         const result = await filteredAssignment.toArray()
         res.send(result)
       }
       catch {
         error =>
-        console.log(error)
+          console.log(error)
       }
     })
 
+    // Assignment
     app.post("/assignments", async (req, res) => {
       const assignments = req.body
       const result = await assignmentsCollections.insertOne(assignments)
       res.send(result)
     })
+
+    // Submission
     app.post("/submissions", async (req, res) => {
       const submission = req.body
       const result = await submittedAssignmentCollections.insertOne(submission)
       res.send(result)
     })
 
+    // Assignment
     app.patch("/assignments/:id", async (req, res) => {
       try {
         const id = req.params.id
@@ -129,6 +149,28 @@ async function run() {
         error => console.log(error)
       }
     })
+    
+    app.patch("/submissions/:id", async (req, res) => {
+      try {
+        const id = req.params.id
+        const query = { _id: new ObjectId(id) }
+        const submission = req.body
+        const updatedSubmission = {
+          $set: {
+            feedback: submission.feedback,
+            marks: submission.marks,
+            status: submission.status
+          }
+        }
+
+        const result = await submittedAssignmentCollections.updateOne(query, updatedSubmission)
+        res.send(result)
+        console.log(result)
+      }
+      catch {
+        error => console.log(error)
+      }
+    })
 
     app.delete("/assignments/:id", async (req, res) => {
       try {
@@ -139,7 +181,7 @@ async function run() {
       }
       catch {
         error =>
-        console.log(error)
+          console.log(error)
       }
     })
 
