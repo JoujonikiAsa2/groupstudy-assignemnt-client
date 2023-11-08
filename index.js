@@ -52,6 +52,13 @@ async function run() {
         console.log("error")
       }
     })
+    app.get("/submissions/user/:email", async (req, res) => {
+      const email = req.params.email
+      const query = { email: email }
+      const assignments = submittedAssignmentCollections.find(query)
+      const result = await assignments.toArray()
+      res.send(result)
+    })
     app.get("/submissions/statusCode/:status", async (req, res) => {
       try {
         const status = req.params.status
@@ -129,14 +136,15 @@ async function run() {
         const id = req.params.id
         const query = { _id: new ObjectId(id) }
         const newAssignment = req.body
+        const option = {upsert: true}
         const updatedAssignment = {
           $set: {
             title: newAssignment.title,
             description: newAssignment.description,
             marks: newAssignment.marks,
-            image: newAssignment.photo,
+            image: newAssignment.image,
             difficulty: newAssignment.difficulty,
-            dueDate: newAssignment.startDate,
+            dueDate: newAssignment.dueDate,
             updaterEmail: newAssignment.updaterEmail
           }
         }
