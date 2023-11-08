@@ -26,6 +26,7 @@ const client = new MongoClient(uri, {
 });
 
 const assignmentsCollections = client.db("Group-Study").collection("assignments")
+const submittedAssignmentCollections = client.db("Group-Study").collection("submittedAssignments")
 
 async function run() {
   try {
@@ -37,10 +38,38 @@ async function run() {
       const result = await assignments.toArray()
       res.send(result)
     })
+
+    app.get("/submissions", async (req, res) => {
+      const assignments = submittedAssignmentCollections.find()
+      const result = await assignments.toArray()
+      res.send(result)
+    })
+
+    app.get("/submissions/:email", async (req, res) => {
+      const email = req.params.email
+        const query = { email: email }
+      const assignments = submittedAssignmentCollections.find(query)
+      const result = await assignments.toArray()
+      res.send(result)
+    })
+
+
     app.get("/assignments/:id", async (req, res) => {
       try {
         const id = req.params.id
         const query = { _id: new ObjectId(id) }
+        const result = await assignmentsCollections.findOne(query)
+        res.send(result)
+      }
+      catch {
+        error =>
+        console.log(error)
+      }
+    })
+    app.get("/assignments/submitted/:id", async (req, res) => {
+      try {
+        const id = req.params.id
+        const query = {_id: id }
         const result = await assignmentsCollections.findOne(query)
         res.send(result)
       }
@@ -69,13 +98,17 @@ async function run() {
       const result = await assignmentsCollections.insertOne(assignments)
       res.send(result)
     })
+    app.post("/submissions", async (req, res) => {
+      const submission = req.body
+      const result = await submittedAssignmentCollections.insertOne(submission)
+      res.send(result)
+    })
 
-    app.put("/assignments/:id", async (req, res) => {
+    app.patch("/assignments/:id", async (req, res) => {
       try {
         const id = req.params.id
         const query = { _id: new ObjectId(id) }
         const newAssignment = req.body
-        const option = { upsert: true }
         const updatedAssignment = {
           $set: {
             title: newAssignment.title,
@@ -83,11 +116,12 @@ async function run() {
             marks: newAssignment.marks,
             image: newAssignment.photo,
             difficulty: newAssignment.difficulty,
-            dueDate: newAssignment.startDate
+            dueDate: newAssignment.startDate,
+            updaterEmail: newAssignment.updaterEmail
           }
         }
 
-        const result = await assignmentsCollections.updateOne(query, updatedAssignment, option)
+        const result = await assignmentsCollections.updateOne(query, updatedAssignment)
         res.send(result)
         console.log(result)
       }
