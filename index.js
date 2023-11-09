@@ -9,7 +9,8 @@ const port = process.env.PORT || 5000
 
 // midlewares
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: ['https://group-study-website.firebaseapp.com', 'https://group-study-website.web.app'],
+  // origin: ["http://localhost:5173"],
   credentials: true
 }))
 
@@ -76,7 +77,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/submissions/:id",  logger,verifyToken, async (req, res) => {
+    app.get("/submissions/:id", async (req, res) => {
       try {
         const id = req.params.id
         const query = { _id: new ObjectId(id) }
@@ -125,7 +126,7 @@ async function run() {
       res.send({count})
     })
 
-    app.get("/assignments/:id", logger,verifyToken, async (req, res) => {
+    app.get("/assignments/:id", async (req, res) => {
       try {
         const id = req.params.id
         const query = { _id: new ObjectId(id) }
@@ -169,8 +170,10 @@ async function run() {
       res
         .cookie('token', token, {
           httpOnly: true,
-          secure: false,
-          // sameSite: 'none'
+          secure: true,
+          sameSite: 'none'
+          // httpOnly: true,
+          // secure: false,
         })
         .send({ success: true })
     })
