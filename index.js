@@ -110,12 +110,20 @@ async function run() {
 
     // Assignment
     app.get("/assignments", async (req, res) => {
-      const assignments = assignmentsCollections.find()
-      const result = await assignments.toArray()
+      const page = parseInt(req.query.page)
+      const size = parseInt(req.query.size)
+      const result = await assignmentsCollections.find()
+      .skip(page * size)
+      .limit(size)
+      .toArray()
       res.send(result)
-      console.log(process.env.ACCESS_SECRET_TOKEN)
+      console.log("pagination", req.query, page, size)
     })
 
+    app.get('/totalAssignemnt', async(req,res) => {
+      const count = await assignmentsCollections.estimatedDocumentCount()
+      res.send({count})
+    })
 
     app.get("/assignments/:id", logger,verifyToken, async (req, res) => {
       try {
